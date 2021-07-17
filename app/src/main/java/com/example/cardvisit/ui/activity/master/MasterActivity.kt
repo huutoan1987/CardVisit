@@ -1,102 +1,89 @@
 package com.example.cardvisit.ui.activity.master
 
-import android.content.Intent
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.RecyclerView
-import androidx.appcompat.widget.Toolbar
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.snackbar.Snackbar
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.FrameLayout
-import android.widget.TextView
-import com.example.cardvisit.ui.fragment.detail.DetailFragment
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
+import androidx.fragment.app.DialogFragment
+import androidx.recyclerview.widget.RecyclerView
 import com.example.cardvisit.R
-
-import com.example.cardvisit.dummy.DummyContent
+import com.example.cardvisit.`object`.Command
+import com.example.cardvisit.databinding.ActivityMasterBinding
 import com.example.cardvisit.ui.activity.detail.DetailActivity
+import com.example.cardvisit.ui.fragment.detail.DetailFrg
+import com.example.cardvisit.ui.fragment.new.NewFrg
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MasterActivity : AppCompatActivity() {
 
-    private var twoPane: Boolean = false
+    private var _isTablet: Boolean = false
+    private val _masterVM: MasterVM by viewModels()
+    private lateinit var _binding: ActivityMasterBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_master)
+        _binding = ActivityMasterBinding.inflate(layoutInflater)
+        setContentView(_binding.root)
 
-        val toolbar = findViewById<Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
-        toolbar.title = title
-
-        findViewById<FloatingActionButton>(R.id.fab).setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show()
-        }
+        setSupportActionBar(_binding.toolbar)
 
         if (findViewById<FrameLayout>(R.id.item_detail_container) != null) {
-            twoPane = true
+            _isTablet = true
         }
 
-        setupRecyclerView(findViewById(R.id.item_list))
+        setupView()
+        setupObserver()
     }
 
-    private fun setupRecyclerView(recyclerView: RecyclerView) {
-        recyclerView.adapter = SimpleItemRecyclerViewAdapter(this, DummyContent.ITEMS, twoPane)
-    }
+    private fun setupView() {
+        _binding.btnAdd.setOnClickListener { view ->
+            NewFrg().apply {
+                setStyle(DialogFragment.STYLE_NORMAL,
+                    android.R.style.Theme_DeviceDefault_Light_NoActionBar_Fullscreen)
+            }.show(supportFragmentManager, "NewFrg")
+        }
 
-    class SimpleItemRecyclerViewAdapter(private val parentActivity: MasterActivity,
-                                        private val values: List<DummyContent.DummyItem>,
-                                        private val twoPane: Boolean) :
-            RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder>() {
+        findViewById<RecyclerView>(R.id.rclv_card).adapter = MasterAdpt(_masterVM, _isTablet)
 
-        private val onClickListener: View.OnClickListener
-
-        init {
-            onClickListener = View.OnClickListener { v ->
-                val item = v.tag as DummyContent.DummyItem
-                if (twoPane) {
-                    val fragment = DetailFragment().apply {
-                        arguments = Bundle().apply {
-                            putString(DetailFragment.ARG_ITEM_ID, item.id)
-                        }
-                    }
-                    parentActivity.supportFragmentManager
-                            .beginTransaction()
-                            .replace(R.id.item_detail_container, fragment)
-                            .commit()
-                } else {
-                    val intent = Intent(v.context, DetailActivity::class.java).apply {
-                        putExtra(DetailFragment.ARG_ITEM_ID, item.id)
-                    }
-                    v.context.startActivity(intent)
+        _binding.schvCard.setOnQueryTextListener(
+            object : SearchView.OnQueryTextListener {
+                override fun onQueryTextSubmit(query: String?): Boolean {
+                    _masterVM.onSearchQueryChange(query?.trim() ?: "")
+                    return false
                 }
+
+                override fun onQueryTextChange(newText: String?): Boolean {
+                    return false
+                }
+            })
+        _binding.schvCard.setOnCloseListener {
+            _masterVM.onSearchQueryChange("")
+            return@setOnCloseListener false
+        }
+    }
+
+    private fun setupObserver() {
+        _masterVM.lstCard.observe(this, { lst ->
+            (findViewById<RecyclerView>(R.id.rclv_card).adapter as MasterAdpt).submitList(lst)
+        })
+        _masterVM.command.observe(this, { command ->
+            when (command) {
+                is Command.OpenDetailActivity -> {
+                    startActivity(DetailActivity.newIntent(this, command.card))
+                }
+                is Command.UpdateDetailFragment -> {
+                    supportFragmentManager
+                        .beginTransaction()
+                        .replace(R.id.item_detail_container, DetailFrg.newInstance(command.card))
+                        .commit()
+                }
+                is Command.ScrollMasterToTop -> {
+                    findViewById<RecyclerView>(R.id.rclv_card).smoothScrollToPosition(0)
+                }
+                else -> { }
             }
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val view = LayoutInflater.from(parent.context)
-                    .inflate(R.layout.layout_master_list_row, parent, false)
-            return ViewHolder(view)
-        }
-
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            val item = values[position]
-            holder.idView.text = item.id
-            holder.contentView.text = item.content
-
-            with(holder.itemView) {
-                tag = item
-                setOnClickListener(onClickListener)
-            }
-        }
-
-        override fun getItemCount() = values.size
-
-        inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-            val idView: TextView = view.findViewById(R.id.id_text)
-            val contentView: TextView = view.findViewById(R.id.content)
-        }
+        })
     }
 }

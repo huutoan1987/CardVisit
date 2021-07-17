@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+    <data>
+        <variable
+            name="card"
+            type="com.example.cardvisit.data.entity.Card" />
+    </data>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/lout_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:background="@drawable/card_bg"
+        >
+
+        <ImageView
+            android:id="@+id/imv_avatar"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/avatar"
+            android:scaleType="fitXY"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            />
+        <TextView
+            android:id="@+id/txt_name"
+            style="?android:attr/textAppearanceLarge"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:text='@{card.name ?? ""}'
+            android:maxLines="2"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toEndOf="@id/imv_avatar"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="Name"
+            />
+        <TextView
+            android:id="@+id/txt_mobile"
+            style="?android:attr/textAppearanceMedium"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text='@{"Mobile: " + (card.mobile ?? "")}'
+            android:maxLines="1"
+            app:layout_constraintTop_toBottomOf="@id/txt_name"
+            app:layout_constraintStart_toStartOf="@id/txt_name"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="Mobile"
+            />
+        <TextView
+            android:id="@+id/txt_addr"
+            style="?android:attr/textAppearanceMedium"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text='@{"Address: " + (card.address ?? "")}'
+            android:maxLines="1"
+            app:layout_constraintTop_toBottomOf="@id/txt_mobile"
+            app:layout_constraintStart_toStartOf="@id/txt_name"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="Address"
+            />
+        <TextView
+            android:id="@+id/txt_company"
+            style="?android:attr/textAppearanceMedium"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text='@{"Company: " + (card.company ?? "")}'
+            android:maxLines="1"
+            app:layout_constraintTop_toBottomOf="@id/txt_addr"
+            app:layout_constraintStart_toStartOf="@id/txt_name"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="Company"
+            />
+        <TextView
+            android:id="@+id/txt_position"
+            style="?android:attr/textAppearanceMedium"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text='@{"Position: " + (card.position ?? "")}'
+            android:maxLines="1"
+            app:layout_constraintTop_toBottomOf="@id/txt_company"
+            app:layout_constraintStart_toStartOf="@id/txt_name"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="Position"
+            />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

@@ -1,74 +1,52 @@
 package com.example.cardvisit.ui.activity.detail
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.snackbar.Snackbar
-import androidx.appcompat.app.AppCompatActivity
 import android.view.MenuItem
-import com.example.cardvisit.ui.fragment.detail.DetailFragment
-import com.example.cardvisit.ui.activity.master.MasterActivity
+import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import com.example.cardvisit.R
+import com.example.cardvisit.data.entity.Card
+import com.example.cardvisit.databinding.ActivityDetailBinding
+import com.example.cardvisit.ui.fragment.detail.DetailFrg
+import dagger.hilt.android.AndroidEntryPoint
 
-/**
- * An activity representing a single Item detail screen. This
- * activity is only used on narrow width devices. On tablet-size devices,
- * item details are presented side-by-side with a list of items
- * in a [MasterActivity].
- */
+@AndroidEntryPoint
 class DetailActivity : AppCompatActivity() {
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_detail)
-        setSupportActionBar(findViewById(R.id.detail_toolbar))
-
-        findViewById<FloatingActionButton>(R.id.fab).setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own detail action", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show()
-        }
-
-        // Show the Up button in the action bar.
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
-        // savedInstanceState is non-null when there is fragment state
-        // saved from previous configurations of this activity
-        // (e.g. when rotating the screen from portrait to landscape).
-        // In this case, the fragment will automatically be re-added
-        // to its container so we don"t need to manually add it.
-        // For more information, see the Fragments API guide at:
-        //
-        // http://developer.android.com/guide/components/fragments.html
-        //
-        if (savedInstanceState == null) {
-            // Create the detail fragment and add it to the activity
-            // using a fragment transaction.
-            val fragment = DetailFragment().apply {
-                arguments = Bundle().apply {
-                    putString(
-                        DetailFragment.ARG_ITEM_ID,
-                            intent.getStringExtra(DetailFragment.ARG_ITEM_ID))
-                }
-            }
-
-            supportFragmentManager.beginTransaction()
-                    .add(R.id.item_detail_container, fragment)
-                    .commit()
+    companion object {
+        fun newIntent(ctx: Context, card: Card) = Intent(ctx, DetailActivity::class.java).apply {
+            putExtra(DetailFrg.ARG_CARD, card)
         }
     }
 
-    override fun onOptionsItemSelected(item: MenuItem) =
-            when (item.itemId) {
-                android.R.id.home -> {
-                    // This ID represents the Home or Up button. In the case of this
-                    // activity, the Up button is shown. For
-                    // more details, see the Navigation pattern on Android Design:
-                    //
-                    // http://developer.android.com/design/patterns/navigation.html#up-vs-back
+    private val _detailVM: DetailVM by viewModels()
+    private val _card by lazy { intent.getParcelableExtra<Card>(DetailFrg.ARG_CARD) }
+    private lateinit var _binding: ActivityDetailBinding
 
-                    navigateUpTo(Intent(this, MasterActivity::class.java))
-                    true
-                }
-                else -> super.onOptionsItemSelected(item)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        _binding = ActivityDetailBinding.inflate(layoutInflater)
+        setContentView(_binding.root)
+
+        _binding.toolbar.title = "CARD DETAILS"
+        setSupportActionBar(_binding.toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+        if (savedInstanceState == null) {
+            _card?.let {
+                supportFragmentManager.beginTransaction()
+                    .add(R.id.item_detail_container, DetailFrg.newInstance(it))
+                    .commit()
             }
+        }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
+        android.R.id.home -> {
+            onBackPressed()
+            true
+        }
+        else -> super.onOptionsItemSelected(item)
+    }
 }

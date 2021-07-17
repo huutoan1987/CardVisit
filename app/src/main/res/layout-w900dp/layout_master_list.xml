@@ -10,6 +10,7 @@
     android:divider="?android:attr/dividerHorizontal"
     android:orientation="horizontal"
     android:showDividers="middle"
+    tools:viewBindingIgnore="true"
     tools:context=".ui.activity.master.MasterActivity">
 
     <!--
@@ -17,10 +18,11 @@
     -->
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/item_list"
+        android:id="@+id/rclv_card"
         android:name="com.example.cardvisit.ItemListFragment"
-        android:layout_width="@dimen/item_width"
+        android:layout_width="0dp"
         android:layout_height="match_parent"
+        android:layout_weight="2"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
         app:layoutManager="LinearLayoutManager"
